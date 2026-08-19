@@ -17,13 +17,17 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-    origin: '*',
+    origin: 'http://localhost:3000',
     credentials: true,
 }));
 
 app.use(`/api/${process.env.VERSION}/auth`, authRoutes);
 app.use(`/api/${process.env.VERSION}/plant`, plantRoutes);
 app.use(`/api/${process.env.VERSION}/shop`, shopRoutes);
+app.use('/test', (req, res) => {
+    console.log('Test route hit');
+    res.send('Test route is working');
+});
 
 app.listen(process.env.PORT || 3000, () => {    
     console.log('Server is running on port ' + (process.env.PORT || 3000));

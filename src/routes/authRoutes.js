@@ -6,7 +6,9 @@ import {
   logout,
   verifyEmail,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  me,
+  resendVerification
 } from '../controllers/authController.js'
 import {
   validateRegister,
@@ -27,7 +29,10 @@ router.post('/forgot-password', validateForgotPassword, forgotPassword)
 router.post('/reset-password/:token', validateResetPassword, resetPassword)
 router.get('/verify-email/:token', verifyEmail)
 
+router.get('/me', authenticate, me)
+router.post('/resend-verfication', authenticate, resendVerification)
+
 // Private routes
 router.post('/logout', authenticate, logout)
 
-export default router
+export default router;

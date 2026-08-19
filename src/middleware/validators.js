@@ -23,9 +23,9 @@ export const validateRegister = [
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
   
-  body('confirmPassword')
-    .custom((value, { req }) => value === req.body.password)
-    .withMessage('Passwords do not match')
+//   body('confirmPassword')
+//     .custom((value, { req }) => value === req.body.password)
+//     .withMessage('Passwords do not match')
 ]
 
 export const validateLogin = [

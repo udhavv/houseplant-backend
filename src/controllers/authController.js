@@ -1,3 +1,4 @@
+// controllers/authController.js
 import { prisma } from '../prismaClient.js'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
@@ -12,11 +13,13 @@ export const register = async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
       return res.status(400).json({ 
+        success: false,
         errors: errors.array().map(err => ({ field: err.path, message: err.msg }))
       })
     }
 
     const { email, username, password } = req.body
+    console.log('Registration request body:', req.body)
 
     // Check if user exists
     const existingUser = await prisma.user.findFirst({
@@ -29,10 +32,14 @@ export const register = async (req, res) => {
     })
 
     if (existingUser) {
+      const errorMessage = existingUser.email === email.toLowerCase() 
+        ? 'Email already registered' 
+        : 'Username already taken'
+      
       return res.status(409).json({ 
-        error: existingUser.email === email.toLowerCase() 
-          ? 'Email already registered' 
-          : 'Username already taken'
+        success: false,
+        error: errorMessage,
+        message: errorMessage
       })
     }
 
@@ -76,23 +83,27 @@ export const register = async (req, res) => {
       }
     })
 
-    // ✅ Set HTTP-only cookies instead of sending tokens in response
+    // Set HTTP-only cookies
     setTokenCookies(res, accessToken, refreshToken)
 
     res.status(201).json({
-      message: 'User registered successfully. Please verify your email.',
+      success: true,
+      message: 'Account created successfully! Please check your email to verify your account.',
       user: {
         id: user.id,
         email: user.email,
         username: user.username,
         isEmailVerified: user.isEmailVerified
       }
-      // ❌ NO tokens in response - they're in HttpOnly cookies!
     })
 
   } catch (error) {
     console.error('Register error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: 'Something went wrong. Please try again later.'
+    })
   }
 }
 
@@ -106,11 +117,13 @@ export const login = async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
       return res.status(400).json({ 
+        success: false,
         errors: errors.array().map(err => ({ field: err.path, message: err.msg }))
       })
     }
 
     const { email, password } = req.body
+    console.log('Login request body:', req.body)
 
     // Find user
     const user = await prisma.user.findUnique({
@@ -118,13 +131,21 @@ export const login = async (req, res) => {
     })
 
     if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' })
+      return res.status(401).json({ 
+        success: false,
+        error: 'Invalid credentials',
+        message: 'Invalid email or password. Please try again.'
+      })
     }
 
     // Check password
     const isValid = await comparePassword(password, user.passwordHash)
     if (!isValid) {
-      return res.status(401).json({ error: 'Invalid credentials' })
+      return res.status(401).json({ 
+        success: false,
+        error: 'Invalid credentials',
+        message: 'Invalid email or password. Please try again.'
+      })
     }
 
     // Check if email is verified
@@ -142,7 +163,9 @@ export const login = async (req, res) => {
         .catch(err => console.error('Email send failed:', err))
       
       return res.status(403).json({ 
-        error: 'Email not verified. A new verification link has been sent.'
+        success: false,
+        error: 'Email not verified',
+        message: 'Please verify your email. A new verification link has been sent to your inbox.'
       })
     }
 
@@ -160,23 +183,27 @@ export const login = async (req, res) => {
       }
     })
 
-    // ✅ Set HTTP-only cookies
+    // Set HTTP-only cookies
     setTokenCookies(res, accessToken, refreshToken)
 
     res.json({
-      message: 'Login successful',
+      success: true,
+      message: 'Welcome back! Login successful.',
       user: {
         id: user.id,
         email: user.email,
         username: user.username,
         isEmailVerified: user.isEmailVerified
       }
-      // ❌ NO tokens in response!
     })
 
   } catch (error) {
     console.error('Login error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: 'Something went wrong. Please try again later.'
+    })
   }
 }
 
@@ -187,11 +214,15 @@ export const login = async (req, res) => {
  */
 export const refresh = async (req, res) => {
   try {
-    // ✅ Get refresh token from cookie instead of request body
+    // Get refresh token from cookie
     const refreshToken = req.cookies?.refreshToken
 
     if (!refreshToken) {
-      return res.status(401).json({ error: 'Refresh token required' })
+      return res.status(401).json({ 
+        success: false,
+        error: 'Refresh token required',
+        message: 'Please login again.'
+      })
     }
 
     // Verify refresh token
@@ -199,7 +230,11 @@ export const refresh = async (req, res) => {
     try {
       decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET)
     } catch (error) {
-      return res.status(401).json({ error: 'Invalid or expired refresh token' })
+      return res.status(401).json({ 
+        success: false,
+        error: 'Invalid or expired refresh token',
+        message: 'Session expired. Please login again.'
+      })
     }
 
     // Check if token exists in DB and is not revoked
@@ -209,7 +244,11 @@ export const refresh = async (req, res) => {
     })
 
     if (!storedToken) {
-      return res.status(401).json({ error: 'Refresh token not found' })
+      return res.status(401).json({ 
+        success: false,
+        error: 'Refresh token not found',
+        message: 'Please login again.'
+      })
     }
 
     if (storedToken.isRevoked) {
@@ -218,18 +257,30 @@ export const refresh = async (req, res) => {
         where: { userId: storedToken.userId },
         data: { isRevoked: true }
       })
-      // ✅ Clear cookies on token reuse
+      // Clear cookies on token reuse
       clearTokenCookies(res)
-      return res.status(401).json({ error: 'Token revoked. Please login again.' })
+      return res.status(401).json({ 
+        success: false,
+        error: 'Token revoked',
+        message: 'Security violation detected. Please login again.'
+      })
     }
 
     if (storedToken.expiresAt < new Date()) {
-      return res.status(401).json({ error: 'Refresh token expired' })
+      return res.status(401).json({ 
+        success: false,
+        error: 'Refresh token expired',
+        message: 'Session expired. Please login again.'
+      })
     }
 
     // Check if user still exists
     if (!storedToken.user) {
-      return res.status(401).json({ error: 'User not found' })
+      return res.status(401).json({ 
+        success: false,
+        error: 'User not found',
+        message: 'User account not found. Please login again.'
+      })
     }
 
     // Generate new tokens
@@ -252,17 +303,21 @@ export const refresh = async (req, res) => {
       }
     })
 
-    // ✅ Set new cookies
+    // Set new cookies
     setTokenCookies(res, accessToken, newRefreshToken)
 
     res.json({
-      message: 'Tokens refreshed successfully'
-      // ❌ NO tokens in response!
+      success: true,
+      message: 'Session refreshed successfully.'
     })
 
   } catch (error) {
     console.error('Refresh error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: 'Something went wrong. Please try again later.'
+    })
   }
 }
 
@@ -273,7 +328,7 @@ export const refresh = async (req, res) => {
  */
 export const logout = async (req, res) => {
   try {
-    // ✅ Get refresh token from cookie
+    // Get refresh token from cookie
     const refreshToken = req.cookies?.refreshToken
 
     if (refreshToken) {
@@ -284,14 +339,21 @@ export const logout = async (req, res) => {
       })
     }
 
-    // ✅ Clear cookies
+    // Clear cookies
     clearTokenCookies(res)
 
-    res.json({ message: 'Logged out successfully' })
+    res.json({
+      success: true,
+      message: 'Logged out successfully. See you soon!'
+    })
 
   } catch (error) {
     console.error('Logout error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: 'Something went wrong. Please try again later.'
+    })
   }
 }
 
@@ -314,7 +376,11 @@ export const verifyEmail = async (req, res) => {
     })
 
     if (!user) {
-      return res.status(400).json({ error: 'Invalid or expired verification token' })
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid or expired verification token',
+        message: 'The verification link is invalid or has expired. Please request a new one.'
+      })
     }
 
     await prisma.user.update({
@@ -326,11 +392,18 @@ export const verifyEmail = async (req, res) => {
       }
     })
 
-    res.json({ message: 'Email verified successfully. You can now login.' })
+    res.json({
+      success: true,
+      message: 'Email verified successfully! You can now login to your account.'
+    })
 
   } catch (error) {
     console.error('Verify email error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: 'Something went wrong. Please try again later.'
+    })
   }
 }
 
@@ -344,6 +417,7 @@ export const forgotPassword = async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
       return res.status(400).json({ 
+        success: false,
         errors: errors.array().map(err => ({ field: err.path, message: err.msg }))
       })
     }
@@ -356,7 +430,8 @@ export const forgotPassword = async (req, res) => {
 
     if (!user) {
       // Don't reveal if email exists or not (security best practice)
-      return res.json({ 
+      return res.json({
+        success: true,
         message: 'If an account with that email exists, a password reset link has been sent.'
       })
     }
@@ -375,13 +450,18 @@ export const forgotPassword = async (req, res) => {
     sendPasswordResetEmail(user.email, user.username, resetToken)
       .catch(err => console.error('Email send failed:', err))
 
-    res.json({ 
-      message: 'If an account with that email exists, a password reset link has been sent.'
+    res.json({
+      success: true,
+      message: 'If an account with that email exists, a password reset link has been sent to your inbox.'
     })
 
   } catch (error) {
     console.error('Forgot password error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: 'Something went wrong. Please try again later.'
+    })
   }
 }
 
@@ -395,6 +475,7 @@ export const resetPassword = async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
       return res.status(400).json({ 
+        success: false,
         errors: errors.array().map(err => ({ field: err.path, message: err.msg }))
       })
     }
@@ -412,7 +493,11 @@ export const resetPassword = async (req, res) => {
     })
 
     if (!user) {
-      return res.status(400).json({ error: 'Invalid or expired reset token' })
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid or expired reset token',
+        message: 'The password reset link is invalid or has expired. Please request a new one.'
+      })
     }
 
     const passwordHash = await hashPassword(password)
@@ -432,13 +517,169 @@ export const resetPassword = async (req, res) => {
       data: { isRevoked: true }
     })
 
-    // ✅ Clear cookies on password reset
+    // Clear cookies on password reset
     clearTokenCookies(res)
 
-    res.json({ message: 'Password reset successfully. Please login with your new password.' })
+    res.json({
+      success: true,
+      message: 'Password reset successfully! Please login with your new password.'
+    })
 
   } catch (error) {
     console.error('Reset password error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: 'Something went wrong. Please try again later.'
+    })
+  }
+}
+
+/**
+ * @desc    Get current authenticated user
+ * @route   GET /api/auth/me
+ * @access  Private
+ */
+export const me = async (req, res) => {
+  try {
+    console.log('Me route called - Getting current user')
+    
+    // Get access token from cookie
+    const accessToken = req.cookies?.accessToken
+
+    if (!accessToken) {
+      return res.status(401).json({
+        success: false,
+        error: 'Not authenticated',
+        message: 'Please login to access this resource.'
+      })
+    }
+
+    // Verify token
+    let decoded
+    try {
+      decoded = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET)
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          success: false,
+          error: 'Token expired',
+          message: 'Session expired. Please refresh your session.'
+        })
+      }
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid token',
+        message: 'Invalid session. Please login again.'
+      })
+    }
+
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        isEmailVerified: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    })
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'User not found',
+        message: 'User account not found. Please login again.'
+      })
+    }
+
+    res.json({
+      success: true,
+      message: 'User authenticated successfully',
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        isEmailVerified: user.isEmailVerified,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
+      }
+    })
+
+  } catch (error) {
+    console.error('Me route error:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: 'Something went wrong. Please try again later.'
+    })
+  }
+}
+
+/**
+ * @desc    Resend verification email
+ * @route   POST /api/auth/resend-verification
+ * @access  Private
+ */
+export const resendVerification = async (req, res) => {
+  try {
+    const userId = req.user?.id
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Not authenticated',
+        message: 'Please login to request a new verification email.'
+      })
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    })
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+        message: 'User account not found.'
+      })
+    }
+
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email already verified',
+        message: 'Your email is already verified.'
+      })
+    }
+
+    // Generate new verification token
+    const newToken = generateRandomToken()
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerificationToken: newToken,
+        emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000)
+      }
+    })
+
+    // Send verification email
+    sendVerificationEmail(user.email, user.username, newToken)
+      .catch(err => console.error('Email send failed:', err))
+
+    res.json({
+      success: true,
+      message: 'Verification email sent successfully! Please check your inbox.'
+    })
+
+  } catch (error) {
+    console.error('Resend verification error:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: 'Something went wrong. Please try again later.'
+    })
   }
 }
