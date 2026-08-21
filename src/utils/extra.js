@@ -2,6 +2,8 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
 
+const version= process.env.VERSION;
+
 
 const generateTokens = (userId) => {
   const accessToken = jwt.sign(
@@ -50,7 +52,8 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
     secure: isProduction,
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    path: '/api/auth/refresh',       // Only sent to refresh endpoint
+    // path: `/api/${version}/auth/refresh`,       // Only sent to refresh endpoint
+    path: '/', // Available on all routes for simplicity; adjust as needed
   })
 }
 
