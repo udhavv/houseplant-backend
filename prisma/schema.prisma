@@ -12,9 +12,6 @@ datasource db {
   provider = "postgresql"
 }
 
-
-
-
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -28,9 +25,12 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
+  // Relations
   plants        Plant[]
   transactions  Transaction[]
   refreshTokens RefreshToken[]
+  plantCareLogs PlantCareLog[]  // ✅ Add this
+  plantMilestones PlantMilestone[]  // ✅ Add this
 }
 
 model RefreshToken {
@@ -54,21 +54,62 @@ model Plant {
   lastWateredAt DateTime  @default(now())
   isAlive       Boolean   @default(true)
   potType       String    @default("basic") // "basic", "ceramic", "golden"
+  
+  // 🌱 NEW: Plant Life Cycle Fields
+  growthStage   String    @default("seed") // "seed", "sprout", "seedling", "young", "mature", "flowering", "fruiting"
+  experience    Int       @default(0)      // Experience points earned
+  level         Int       @default(1)      // Plant level (1-10)
+  daysOld       Int       @default(0)      // Days since planted
+  lastStageUpdate DateTime @default(now()) // When the stage was last updated
+  
   createdAt     DateTime  @default(now())
+//  updatedAt     DateTime  @updatedAt
   
   userId        String
-  user          User      @relation(fields: [userId], references: [id])
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Relations
+  plantCareLogs  PlantCareLog[]
+  plantMilestones PlantMilestone[]
+}
+
+// 📝 NEW: Plant Care Logs (Track all care actions)
+model PlantCareLog {
+  id            String    @id @default(cuid())
+  action        String    // "water", "fertilize", "prune", "repot"
+  details       String?   // Additional details about the action
+  timestamp     DateTime  @default(now())
+  
+  plantId       String
+  plant         Plant     @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 🏆 NEW: Plant Milestones (Achievements)
+model PlantMilestone {
+  id            String    @id @default(cuid())
+  type          String    // "stage_reached", "level_up", "days_alive", "health_achievement"
+  name          String
+  description   String
+  icon          String?
+  achievedAt    DateTime  @default(now())
+  
+  plantId       String
+  plant         Plant     @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Transaction {
   id            String    @id @default(cuid())
   amount        Int       // Coins earned/spent
-  type          String    // "daily_checkin", "purchase_pot", "water_bonus"
+  type          String    // "daily_checkin", "purchase_pot", "water_bonus", "level_up_bonus", "stage_bonus"
+  description   String?   // Optional description
   createdAt     DateTime  @default(now())
   
   userId        String
-  user          User      @relation(fields: [userId], references: [id])
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
-// For the "Shop" - just hardcode this in your code, no need for a DB table
-// Pots: basic ($0), ceramic ($50), golden ($200)

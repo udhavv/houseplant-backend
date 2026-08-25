@@ -48,7 +48,7 @@ export const register = async (req, res) => {
     
     // Generate email verification token
     const emailVerificationToken = generateRandomToken()
-    const emailVerificationExpires = new Date(Date.now() + 5 * 60 * 60 * 1000) // 5 hours
+    const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
     // Create user
     const user = await prisma.user.create({

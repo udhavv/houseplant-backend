@@ -51,7 +51,7 @@
 
 
 import cron from 'node-cron'
-import { prisma } from '../prisma.js'
+import { prisma } from '../prismaClient.js'
 import { sendWiltingEmail } from '../utils/email.js'
 
 // console.log('11')
