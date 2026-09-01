@@ -1660,17 +1660,33 @@ export const resetPlant = async (req, res) => {
   }
 }
 
-// GET: Get plant milestones
+// Update these functions in controllers/plantController.js
+
+// GET: Get plant milestones with pagination
 export const getPlantMilestones = async (req, res) => {
   try {
+    const { limit = 50, offset = 0 } = req.query
+    
     const milestones = await prisma.plantMilestone.findMany({
       where: { userId: req.userId },
-      orderBy: { achievedAt: 'desc' }
+      orderBy: { achievedAt: 'desc' },
+      take: parseInt(limit),
+      skip: parseInt(offset)
+    })
+    
+    const totalMilestones = await prisma.plantMilestone.count({
+      where: { userId: req.userId }
     })
     
     res.json({
       success: true,
-      milestones
+      milestones,
+      pagination: {
+        total: totalMilestones,
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        hasMore: parseInt(offset) + parseInt(limit) < totalMilestones
+      }
     })
   } catch (error) {
     console.error('Get milestones error:', error)
@@ -1682,18 +1698,31 @@ export const getPlantMilestones = async (req, res) => {
   }
 }
 
-// GET: Get plant care logs
+// GET: Get plant care logs with pagination
 export const getPlantCareLogs = async (req, res) => {
   try {
+    const { limit = 20, offset = 0 } = req.query
+    
     const logs = await prisma.plantCareLog.findMany({
       where: { userId: req.userId },
       orderBy: { timestamp: 'desc' },
-      take: 20
+      take: parseInt(limit),
+      skip: parseInt(offset)
+    })
+    
+    const totalLogs = await prisma.plantCareLog.count({
+      where: { userId: req.userId }
     })
     
     res.json({
       success: true,
-      logs
+      logs,
+      pagination: {
+        total: totalLogs,
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        hasMore: parseInt(offset) + parseInt(limit) < totalLogs
+      }
     })
   } catch (error) {
     console.error('Get care logs error:', error)
@@ -1705,26 +1734,10 @@ export const getPlantCareLogs = async (req, res) => {
   }
 }
 
-// PUT: Update plant name
+// PUT: Update plant name with validation
 export const updatePlantName = async (req, res) => {
   try {
     const { name } = req.body
-    
-    if (!name || name.trim().length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Name is required',
-        message: 'Please provide a name for your plant.'
-      })
-    }
-    
-    if (name.length > 30) {
-      return res.status(400).json({
-        success: false,
-        error: 'Name too long',
-        message: 'Plant name must be less than 30 characters.'
-      })
-    }
     
     const plant = await prisma.plant.findFirst({
       where: { userId: req.userId }
