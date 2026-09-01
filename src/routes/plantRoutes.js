@@ -24,7 +24,6 @@
 
 // export default router
 
-
 // routes/plantRoutes.js
 import express from 'express'
 import { authenticate } from '../middleware/auth.js'
@@ -32,14 +31,21 @@ import {
   fetchPlantState,
   waterPlant,
   fertilizePlant,
-  prunePlant,
   repotPlant,
   resetPlant,
   getPlantMilestones,
   getPlantCareLogs,
   updatePlantName,
-  checkPlantStatus
+  checkPlantStatus,
+  prunePlant
 } from '../controllers/plantController.js'
+import {
+  validatePlantName,
+  validateResetPlant,
+  validateGetMilestones,
+  validateGetCareLogs,
+  validateCheckPlantStatus
+} from '../middleware/plantValidator.js'
 
 const router = express.Router()
 
@@ -47,20 +53,20 @@ const router = express.Router()
 router.use(authenticate)
 
 // Plant state
-router.get('/state', authenticate, fetchPlantState)
-router.get('/status', authenticate, checkPlantStatus)
+router.get('/state', fetchPlantState)
+router.get('/status', validateCheckPlantStatus, checkPlantStatus)
 
 // Plant actions
-router.post('/water', authenticate, waterPlant)
-router.post('/fertilize', authenticate, fertilizePlant)
-router.post('/prune', authenticate, prunePlant)
-router.post('/repot', authenticate, repotPlant)
-router.post('/reset', authenticate, resetPlant)
-router.put('/name', authenticate, updatePlantName) 
+router.post('/water', waterPlant)
+router.post('/fertilize', fertilizePlant)
+router.post('/prune', prunePlant)
+router.post('/repot', repotPlant)
+router.post('/reset', validateResetPlant, resetPlant)
+router.put('/name', validatePlantName, updatePlantName)
 
 // Plant history
-router.get('/milestones', authenticate, getPlantMilestones)
-router.get('/care-logs', authenticate, getPlantCareLogs)
+router.get('/milestones', validateGetMilestones, getPlantMilestones)
+router.get('/care-logs', validateGetCareLogs, getPlantCareLogs)
 
 export default router
 
