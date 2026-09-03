@@ -84,7 +84,7 @@ app.use(`/api/${process.env.VERSION}/shop`, shopRoutes);
 // -------------------------
 
 app.get("/test", (req, res) => {
-  console.log("Test route hit");
+  console.log("Test route hit once again");
 
   res.send("Test route is working");
 });

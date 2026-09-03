@@ -1,0 +1,35 @@
+services:
+  backend:
+    build: .
+    container_name: houseplant-backend
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT}
+      DATABASE_URL: ${DATABASE_URL}
+      VERSION: ${VERSION}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      HOST: ${HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:17
+    container_name: houseplant-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: hellowpin1
+      POSTGRES_DB: houseplant
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
