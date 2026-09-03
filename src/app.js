@@ -89,6 +89,10 @@ app.get("/test", (req, res) => {
   res.send("Test route is working");
 });
 
+
+app.get('/', (req, res) => {
+  res.send("This is just the backend, I am working in Frontend to make it better. it is incontinent with backend for now.");
+});
 // -------------------------
 // 404 Handler
 // -------------------------
