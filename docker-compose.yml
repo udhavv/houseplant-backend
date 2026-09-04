@@ -57,3 +57,6 @@ services:
       SMTP_PASS: ${SMTP_PASS}
 
     restart: unless-stopped
+
+
+    

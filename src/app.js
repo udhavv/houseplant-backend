@@ -64,7 +64,10 @@ app.use(
     //       "http://localhost:3000",
     //       "http://192.168.12.77:3000",
     //     ],
-    origin: "*",
+    origin: [
+      'http://localhost:3000',
+      'https://houseplant-backend.onrender.com'
+    ],
     credentials: true,
   })
 );
