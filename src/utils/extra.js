@@ -41,7 +41,7 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
   res.cookie('accessToken', accessToken, {
     httpOnly: true,           //  Cannot be accessed by JavaScript
     secure: isProduction,      //  HTTPS only in production
-    sameSite: 'lax',          //  CSRF protection
+    sameSite: 'none',          //  CSRF protection
     maxAge: 15 * 60 * 1000,   // 15 minutes
     path: '/',   
   })
@@ -50,7 +50,7 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'lax',
+    sameSite: 'none',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     // path: `/api/${version}/auth/refresh`,       // Only sent to refresh endpoint
     path: '/', // Available on all routes for simplicity;
