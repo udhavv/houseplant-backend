@@ -15,35 +15,37 @@
 
 
 import { PrismaClient } from "./generated/prisma/client.ts";
-
-
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import fs from "fs";
 import path from "path";
 
-
 if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL is missing from the .env file");
+  throw new Error("DATABASE_URL is missing");
 }
 
-const caCertPath = path.join(process.cwd(), "certs", "ca.pem");
-const caCert = fs.readFileSync(caCertPath, "utf-8").toString();
+const caCertPath =
+  process.env.NODE_ENV === "production"
+    ? "/etc/secrets/ca.pem"
+    : path.join(process.cwd(), "certs", "ca.pem");
+
+const caCert = fs.readFileSync(caCertPath, "utf8");
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
-   ssl: {
+  ssl: {
     rejectUnauthorized: true,
     ca: caCert,
   },
 });
 
-
 export const prisma = new PrismaClient({
   adapter,
-  log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
-})
-
+  log:
+    process.env.NODE_ENV === "development"
+      ? ["query", "info", "warn", "error"]
+      : ["error"],
+});
 
 // export const prisma = new PrismaClient();
 
