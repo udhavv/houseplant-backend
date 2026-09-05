@@ -39,11 +39,12 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
   
   // Access Token Cookie (15 min)
   res.cookie('accessToken', accessToken, {
-    httpOnly: true,           // ✅ Cannot be accessed by JavaScript
-    secure: isProduction,      // ✅ HTTPS only in production
-    sameSite: 'lax',          // ✅ CSRF protection
+    httpOnly: true,           //  Cannot be accessed by JavaScript
+    secure: isProduction,      //  HTTPS only in production
+    sameSite: 'lax',          //  CSRF protection
     maxAge: 15 * 60 * 1000,   // 15 minutes
-    path: '/',                // Available on all routes
+    path: '/',   
+    domain: 'https://houseplant-frontend-itx2.vercel.app'            
   })
 
   // Refresh Token Cookie (7 days)
@@ -53,7 +54,8 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     // path: `/api/${version}/auth/refresh`,       // Only sent to refresh endpoint
-    path: '/', // Available on all routes for simplicity; adjust as needed
+    path: '/', // Available on all routes for simplicity;
+    domain: 'https://houseplant-frontend-itx2.vercel.app'           
   })
 }
 
