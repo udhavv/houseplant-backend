@@ -44,6 +44,9 @@ services:
     ports:
       - "4000:4000"
 
+    volumes:
+      - ./certs:/app/certs:ro
+
     environment:
       NODE_ENV: ${NODE_ENV}
       PORT: ${PORT}
