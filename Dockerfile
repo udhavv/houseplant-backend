@@ -6,7 +6,7 @@ COPY package*.json ./
 
 RUN npm install
 
-
+COPY certs ./ca.pem
 
 COPY . .
 
