@@ -66,7 +66,7 @@ app.use(
     //     ],
     origin: [
       'http://localhost:3000',
-      'https://houseplant-backend.onrender.com'
+      'https://houseplant-frontend-itx2.vercel.app'
     ],
     credentials: true,
   })
