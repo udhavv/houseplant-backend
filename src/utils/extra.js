@@ -44,7 +44,6 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
     sameSite: 'lax',          //  CSRF protection
     maxAge: 15 * 60 * 1000,   // 15 minutes
     path: '/',   
-    domain: 'https://houseplant-frontend-itx2.vercel.app'            
   })
 
   // Refresh Token Cookie (7 days)
@@ -55,7 +54,6 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     // path: `/api/${version}/auth/refresh`,       // Only sent to refresh endpoint
     path: '/', // Available on all routes for simplicity;
-    domain: 'https://houseplant-frontend-itx2.vercel.app'           
   })
 }
 
