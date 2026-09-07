@@ -1,6 +1,5 @@
 import { jest } from "@jest/globals";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
 
 import {
   generateTokens,
@@ -197,8 +196,9 @@ describe("Extra Utilities", () => {
         "access-token",
         expect.objectContaining({
           httpOnly: true,
-          sameSite: "lax",
+          sameSite: "none",
           path: "/",
+          secure: process.env.NODE_ENV === "production",
         })
       );
 
@@ -208,8 +208,10 @@ describe("Extra Utilities", () => {
         "refresh-token",
         expect.objectContaining({
           httpOnly: true,
-          sameSite: "lax",
+          sameSite: "none",
           path: "/",
+          secure: process.env.NODE_ENV === "production",
+
         })
       );
     });

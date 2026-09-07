@@ -1,8 +1,6 @@
 // controllers/authController.js
 import { prisma } from '../prismaClient.js'
-import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import crypto from 'crypto'
 import { validationResult } from 'express-validator'
 import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/email.js'
 import { comparePassword, hashPassword, generateTokens, generateRandomToken, setTokenCookies, clearTokenCookies } from '../utils/extra.js'

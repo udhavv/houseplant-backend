@@ -58,12 +58,6 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    // origin: process.env.FRONTEND_URL
-    //   ? [process.env.FRONTEND_URL]
-    //   : [
-    //       "http://localhost:3000",
-    //       "http://192.168.12.77:3000",
-    //     ],
     origin: [
       'http://localhost:3000',
       'https://houseplant-frontend-itx2.vercel.app'
