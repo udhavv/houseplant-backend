@@ -17,7 +17,6 @@ export const register = async (req, res) => {
     }
 
     const { email, username, password } = req.body
-    console.log('Registration request body:', req.body)
 
     // Check if user exists
     const existingUser = await prisma.user.findFirst({
@@ -121,7 +120,7 @@ export const login = async (req, res) => {
     }
 
     const { email, password } = req.body
-    console.log('Login request body:', req.body)
+
 
     // Find user
     const user = await prisma.user.findUnique({
@@ -540,7 +539,6 @@ export const resetPassword = async (req, res) => {
  */
 export const me = async (req, res) => {
   try {
-    console.log('Me route called - Getting current user')
     
     // Get access token from cookie
     const accessToken = req.cookies?.accessToken

@@ -328,12 +328,12 @@ describe("Auth Controller", () => {
       });
 
       it("should convert username to lowercase", async () => {
-        req.body.username = "TestUser123";
+        req.body.username = "TestUser";
         await register(req, res);
 
         expect(mockPrisma.user.create).toHaveBeenCalledWith({
           data: expect.objectContaining({
-            username: "testuser123",
+            username: "testuser",
           }),
         });
       });
@@ -361,12 +361,12 @@ describe("Auth Controller", () => {
       });
 
       it("should set email verification expiry to 24 hours", async () => {
-        const mockDate = new Date("2024-01-01T00:00:00Z");
+        const mockDate = new Date("2026-01-01T00:00:00Z");
         jest.useFakeTimers().setSystemTime(mockDate);
 
         await register(req, res);
 
-        const expectedExpiry = new Date("2024-01-02T00:00:00Z");
+        const expectedExpiry = new Date("2026-01-02T00:00:00Z");
         expect(mockPrisma.user.create).toHaveBeenCalledWith({
           data: expect.objectContaining({
             emailVerificationExpires: expectedExpiry,
