@@ -946,7 +946,8 @@ const checkAndHandleLevelUp = async (plant, userId) => {
   let leveledUp = false
   let currentPlant = plant
   
-  while (currentPlant.experience >= getXPRequiredForLevel(currentPlant.level)) {
+  while (currentPlant.experience >= 
+    (currentPlant.level)) {
     // Level up!
     const xpRequired = getXPRequiredForLevel(currentPlant.level)
     currentPlant.experience -= xpRequired
@@ -1154,11 +1155,11 @@ export const waterPlant = async (req, res) => {
     const COOLDOWN_MINUTES = 5
     
     if (minutesSinceWatered < COOLDOWN_MINUTES) {
-      const remainingMinutes = Math.ceil(COOLDOWN_MINUTES - minutesSinceWatered)
+      // const remainingMinutes = Math.ceil(COOLDOWN_MINUTES - minutesSinceWatered)
       return res.status(400).json({
         success: false,
         error: 'Too soon to water',
-        message: `⏳ Please wait ${remainingMinutes} minute(s) before watering again.`
+        message: `⏳ Please wait 5 minute(s) before watering again.`
       })
     }
 
@@ -1187,7 +1188,7 @@ export const waterPlant = async (req, res) => {
         experience: { increment: EXPERIENCE_REWARDS.WATER + bonusXP },
       }
     })
-    console.log('this is the updatedplant data::- ', updatedPlant)
+    // console.log('this is the updatedplant data::- ', updatedPlant)
 
     // Log the transaction
     await prisma.$transaction([
@@ -1417,7 +1418,7 @@ export const prunePlant = async (req, res) => {
       })
     }
 
-    const updatedPlant = await prisma.plant.update({
+    await prisma.plant.update({
       where: { id: plant.id },
       data: {
         health: Math.max(50, plant.health - 5),
@@ -1512,7 +1513,7 @@ export const repotPlant = async (req, res) => {
       })
     }
 
-    const updatedPlant = await prisma.plant.update({
+    await prisma.plant.update({
       where: { id: plant.id },
       data: {
         health: Math.min(100, plant.health + 20),

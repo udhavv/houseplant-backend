@@ -62,8 +62,8 @@ model Plant {
   daysOld       Int       @default(0)      // Days since planted
   lastStageUpdate DateTime @default(now()) // When the stage was last updated
   
-  createdAt     DateTime  @default(now())
-//  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime  @default(now())  
+//  updatedAt     DateTime  @updatedAt    //this is commented out
   
   userId        String
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)

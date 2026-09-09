@@ -111,7 +111,7 @@ export const COIN_REWARDS = {
   FERTILIZE: 10,
   DAILY_CHECKIN: 20,
   STAGE_ADVANCE: 25,
-  LEVEL_UP: 50,
+  LEVEL_UP: 30,
 }
 
 // Level requirements (XP needed for each level)
