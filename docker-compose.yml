@@ -36,8 +36,17 @@
 
 
 
+# ways to write a secret in file:- create a file called password.txt and save it inside db
+# then in docker-compose.yml file write
+# secrets:
+# db-password:
+#   file:db/password.txt
+
+
+
 
 services:
+
   backend:
     build: .
     container_name: houseplant-backend
