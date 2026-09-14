@@ -24,7 +24,8 @@ model User {
   passwordResetExpires DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
+
+  coins         Int @default(0)  
   // Relations
   plants        Plant[]
   transactions  Transaction[]

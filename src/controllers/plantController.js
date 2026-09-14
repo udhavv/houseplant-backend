@@ -284,7 +284,7 @@ export const waterPlant = async (req, res) => {
     const newWaterLevel = Math.min(100, plant.waterLevel + 20)
 
     // Update plant
-    const updatedPlant = await prisma.plant.update({
+    await prisma.plant.update({
       where: { id: plant.id },
       data: {
         health: newHealth,
