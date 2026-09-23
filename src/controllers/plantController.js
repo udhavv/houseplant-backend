@@ -50,27 +50,32 @@ const getXPRequiredForLevel = (level) => {
 const checkAndHandleLevelUp = async (plant, userId) => {
   let leveledUp = false
   let currentPlant = plant
-  
-  while (currentPlant.experience >= 
-    (currentPlant.level)) {
-    // Level up!
+
+  while (true) {
     const xpRequired = getXPRequiredForLevel(currentPlant.level)
-    currentPlant.experience -= xpRequired
+
+    if (currentPlant.experience < xpRequired) break
+
+    // Level up!
     currentPlant.level += 1
+    currentPlant.experience -= xpRequired
     leveledUp = true
-    
-    // Award level up bonus
+
     const levelUpReward = EXPERIENCE_REWARDS.LEVEL_UP || 50
     const coinReward = COIN_REWARDS.LEVEL_UP || 50
-    
-    // Update plant
+
+    //  Atomic: update plant, user coins, transaction, milestone
     await prisma.$transaction([
       prisma.plant.update({
         where: { id: currentPlant.id },
         data: {
           level: currentPlant.level,
-          experience: currentPlant.experience,
+          experience: currentPlant.experience + levelUpReward
         }
+      }),
+      prisma.user.update({
+        where: { id: userId },              
+        data: { coins: { increment: coinReward } } 
       }),
       prisma.transaction.create({
         data: {
@@ -92,7 +97,7 @@ const checkAndHandleLevelUp = async (plant, userId) => {
       })
     ])
   }
-  
+
   return { plant: currentPlant, leveledUp }
 }
 
@@ -160,7 +165,7 @@ export const fetchPlantState = async (req, res) => {
       const stageAdvancementReward = EXPERIENCE_REWARDS.STAGE_ADVANCE
       const coinReward = COIN_REWARDS.STAGE_ADVANCE
       
-      await prisma.$transaction([
+            await prisma.$transaction([
         prisma.plant.update({
           where: { id: plant.id },
           data: {
@@ -176,6 +181,11 @@ export const fetchPlantState = async (req, res) => {
             description: `Advanced to ${currentStage.label} stage!`,
             userId: req.userId
           }
+        }),
+        //  Add this
+        prisma.user.update({
+          where: { id: req.userId },
+          data: { coins: { increment: coinReward } }
         }),
         prisma.plantMilestone.create({
           data: {
@@ -296,6 +306,7 @@ export const waterPlant = async (req, res) => {
     // console.log('this is the updatedplant data::- ', updatedPlant)
 
     // Log the transaction
+       // Log the transaction and update user coins
     await prisma.$transaction([
       prisma.transaction.create({
         data: {
@@ -305,6 +316,13 @@ export const waterPlant = async (req, res) => {
           userId: req.userId
         }
       }),
+      //  Only increment if bonusCoins > 0
+      ...(bonusCoins > 0
+        ? [prisma.user.update({
+            where: { id: req.userId },
+            data: { coins: { increment: bonusCoins } }
+          })]
+        : []),
       prisma.plantCareLog.create({
         data: {
           action: 'water',
@@ -427,7 +445,7 @@ export const fertilizePlant = async (req, res) => {
       }
     })
 
-    await prisma.$transaction([
+        await prisma.$transaction([
       prisma.transaction.create({
         data: {
           amount: COIN_REWARDS.FERTILIZE,
@@ -435,6 +453,10 @@ export const fertilizePlant = async (req, res) => {
           description: 'Fertilized plant',
           userId: req.userId
         }
+      }),
+      prisma.user.update({
+        where: { id: req.userId },
+        data: { coins: { increment: COIN_REWARDS.FERTILIZE } }
       }),
       prisma.plantCareLog.create({
         data: {
@@ -627,14 +649,18 @@ export const repotPlant = async (req, res) => {
       }
     })
 
-    await prisma.$transaction([
+        await prisma.$transaction([
       prisma.transaction.create({
         data: {
-          amount: -25, // Costs coins to repot
+          amount: -25,
           type: 'repot',
           description: 'Repotted plant',
           userId: req.userId
         }
+      }),
+      prisma.user.update({
+        where: { id: req.userId },
+        data: { coins: { decrement: 25 } }
       }),
       prisma.plantCareLog.create({
         data: {
