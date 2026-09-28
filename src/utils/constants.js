@@ -45,10 +45,10 @@ export const PLANT_STAGES = {
     label: 'Young Plant',
     icon: '🌳',
     // healthRange: [61, 80],
-    minDays: 5,
+    minDays: 10,
     // experienceRequired: 350,
 
-        level: 0,
+        level: 5,
 
     color: 'from-green-400 to-emerald-500',
     description: 'Growing taller and stronger',
