@@ -27,6 +27,19 @@
 // routes/plantRoutes.js
 import express from 'express'
 import { authenticate } from '../middleware/auth.js'
+// import {
+//   fetchPlantState,
+//   waterPlant,
+//   fertilizePlant,
+//   repotPlant,
+//   resetPlant,
+//   getPlantMilestones,
+//   getPlantCareLogs,
+//   updatePlantName,
+//   checkPlantStatus,
+//   prunePlant
+// } from '../controllers/plantController.js'
+
 import {
   fetchPlantState,
   waterPlant,
@@ -38,7 +51,9 @@ import {
   updatePlantName,
   checkPlantStatus,
   prunePlant
-} from '../controllers/plantController.js'
+} from '../controllers/newPlantController.js'
+
+
 import {
   validatePlantName,
   validateResetPlant,
