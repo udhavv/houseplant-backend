@@ -45,62 +45,19 @@
 
 
 # for production 
-# services:
-
-#   backend:
-#     build: .
-#     container_name: houseplant-backend
-#     ports:
-#       - "4000:4000"
-
-#     volumes:
-#       - ./certs:/app/certs:ro
-
-#     environment:
-#       NODE_ENV: ${NODE_ENV}
-#       PORT: ${PORT}
-#       DATABASE_URL: ${DATABASE_URL}
-#       VERSION: ${VERSION}
-#       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
-#       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
-#       HOST: ${HOST}
-#       MAIL_PORT: ${MAIL_PORT}
-#       SMTP_USER: ${SMTP_USER}
-#       SMTP_PASS: ${SMTP_PASS}
-#       FRONTEND_URL: ${FRONTEND_URL}
-
-#     restart: unless-stopped
-
-
-    
-
-
-
-
-# for development
 services:
+
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-
-    container_name: houseplant-backend-dev
-
+    build: .
+    container_name: houseplant-backend
     ports:
       - "4000:4000"
 
     volumes:
-      # Mount source code for live development
-      - .:/app
-
-      # Keep container's node_modules
-      - /app/node_modules
-
-      # Mount certificates read-only
       - ./certs:/app/certs:ro
 
     environment:
-      NODE_ENV: development
+      NODE_ENV: ${NODE_ENV}
       PORT: ${PORT}
       DATABASE_URL: ${DATABASE_URL}
       VERSION: ${VERSION}
@@ -112,6 +69,49 @@ services:
       SMTP_PASS: ${SMTP_PASS}
       FRONTEND_URL: ${FRONTEND_URL}
 
-    command: npm run dev
-
     restart: unless-stopped
+
+
+    
+
+
+
+
+# # for development
+# services:
+#   backend:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile
+
+#     container_name: houseplant-backend-dev
+
+#     ports:
+#       - "4000:4000"
+
+#     volumes:
+#       # Mount source code for live development
+#       - .:/app
+
+#       # Keep container's node_modules
+#       - /app/node_modules
+
+#       # Mount certificates read-only
+#       - ./certs:/app/certs:ro
+
+#     environment:
+#       NODE_ENV: development
+#       PORT: ${PORT}
+#       DATABASE_URL: ${DATABASE_URL}
+#       VERSION: ${VERSION}
+#       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+#       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+#       HOST: ${HOST}
+#       MAIL_PORT: ${MAIL_PORT}
+#       SMTP_USER: ${SMTP_USER}
+#       SMTP_PASS: ${SMTP_PASS}
+#       FRONTEND_URL: ${FRONTEND_URL}
+
+#     command: npm run dev
+
+#     restart: unless-stopped
