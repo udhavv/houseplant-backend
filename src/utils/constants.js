@@ -1,4 +1,4 @@
-// utils/plantConstants.js
+// utils/constants.js
 
 // Plant stages with their requirements
 export const PLANT_STAGES = {
@@ -130,7 +130,7 @@ export const COIN_REWARDS = {
 
 // Level requirements (XP needed for each level)
 export const LEVEL_REQUIREMENTS = {
-  1: 0,
+   1: 50,
   2: 100,
   3: 250,
   4: 500,
@@ -140,4 +140,11 @@ export const LEVEL_REQUIREMENTS = {
   8: 2300,
   9: 3000,
   10: 4000,
+  11: 5200,
+  12: 6600,
+  13: 8200,
+  14: 10000,
+  15: 12000,
+  16: 14300,
+  17: 17000,
 }
