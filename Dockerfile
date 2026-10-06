@@ -22,46 +22,61 @@
 
 
 
-# ==========================================
-# STAGE 1: Dependencies & Build (Builder)
-# ==========================================
-# FROM node:22-alpine AS builder
-
+# # ==========================================
+# # STAGE 1: Full Dependencies & Prisma Client Generation
+# # ==========================================
+# FROM node:22-alpine AS prisma-builder
 # WORKDIR /app
 
-# # Copy dependency definitions
+# # Install openssl for Prisma engines in alpine
+# RUN apk add --no-cache openssl
+
 # COPY package*.json ./
 # COPY prisma ./prisma/
 
-# # Install ALL dependencies (including dev dependencies needed for generation/compilation)
+# # Install ALL dependencies (including Prisma CLI)
 # RUN npm ci
 
-# # Copy full application source code
-# COPY . .
-
-# # Generate Prisma Client binary into node_modules
+# # Generate the custom Prisma Client engines
 # RUN npx prisma generate
 
 
 # # ==========================================
-# # STAGE 2: Lightweight Production Runtime
+# # STAGE 2: Clean Production Dependencies
 # # ==========================================
-# FROM node:22-alpine AS runner
-
+# FROM node:22-alpine AS production-deps
 # WORKDIR /app
 
-# # Set Node environment to production
+# COPY package*.json ./
+
+# # Install ONLY production dependencies & aggressively purge the npm cache
+# RUN npm ci --omit=dev && npm cache clean --force
+
+
+# # ==========================================
+# # STAGE 3: Ultra-lightweight Production Runtime
+# # ==========================================
+# FROM node:22-alpine AS runner
+# WORKDIR /app
+
+# # Ensure runtime has openssl for Prisma client to connect to the DB
+# RUN apk add --no-cache openssl
+
 # ENV NODE_ENV=production
 
-# # Copy package files and install ONLY production dependencies to keep node_modules minimal
+# # Copy package references
 # COPY package*.json ./
-# RUN npm ci --only=production
 
-# # Copy generated Prisma Client and build artifacts from the builder stage
-# COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-# COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-# COPY --from=builder /app/src ./src
-# COPY --from=builder /app/prisma ./prisma
+# # 1. Copy the lean production node_modules from Stage 2
+# COPY --from=production-deps /app/node_modules ./node_modules
+
+# # 2. Inject the custom generated Prisma Client artifacts from Stage 1
+# # COPY --from=prisma-builder /app/node_modules/.prisma ./node_modules/.prisma
+# # COPY --from=prisma-builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+
+# # 3. Copy application files
+# COPY --from=prisma-builder /app/src ./src
+# COPY --from=prisma-builder /app/prisma ./prisma
 
 # EXPOSE 4000
 
@@ -74,29 +89,50 @@
 
 
 
+
+
+
+
+
+
+
+
+
 # ==========================================
-# STAGE 1: Dependencies & Build (Builder)
+# STAGE 1: Install dependencies + generate Prisma
 # ==========================================
-FROM node:22-alpine AS builder
+FROM node:22-alpine AS deps
 
 WORKDIR /app
 
-# Copy dependency definitions
+# Prisma requires OpenSSL
+RUN apk add --no-cache openssl
+
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install ALL dependencies
+# Install dependencies needed for Prisma generation
 RUN npm ci
-
-# Copy full application source code
-COPY . .
 
 # Generate Prisma Client
 RUN npx prisma generate
 
 
 # ==========================================
-# STAGE 2: Lightweight Production Runtime
+# STAGE 2: Production dependencies
+# ==========================================
+FROM node:22-alpine AS prod-deps
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm ci --omit=dev \
+    && npm cache clean --force
+
+
+# ==========================================
+# STAGE 3: Production runtime
 # ==========================================
 FROM node:22-alpine AS runner
 
@@ -104,16 +140,111 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copy package files for reference
-COPY package*.json ./
+# Prisma runtime dependency
+RUN apk add --no-cache openssl \
+    && addgroup -S nodejs \
+    && adduser -S nodejs -G nodejs
 
-# Copy complete node_modules from builder (includes Prisma generated client)
-COPY --from=builder /app/node_modules ./node_modules
+# Production node_modules
+COPY --from=prod-deps /app/node_modules ./node_modules
 
-# Copy source code and Prisma schema
-COPY --from=builder /app/src ./src
-COPY --from=builder /app/prisma ./prisma
+# Prisma generated client
+# COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
+# COPY --from=deps /app/node_modules/@prisma/client ./node_modules/@prisma/client
+
+# Application source
+COPY --chown=nodejs:nodejs src ./src
+
+# Only copy Prisma migrations/schema if runtime needs them
+COPY --chown=nodejs:nodejs prisma ./prisma
+
+# Package metadata
+COPY --chown=nodejs:nodejs package*.json ./
+
+USER nodejs
 
 EXPOSE 4000
 
 CMD ["node", "src/server.js"]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# # ==========================================
+# # STAGE 1: Dependencies & Build (Builder)
+# # ==========================================
+# FROM node:22-alpine AS builder
+
+# WORKDIR /app
+
+# # Copy dependency definitions
+# COPY package*.json ./
+# COPY prisma ./prisma/
+
+# # Install ALL dependencies
+# RUN npm ci
+
+# # Copy full application source code
+# COPY . .
+
+# # Generate Prisma Client
+# RUN npx prisma generate
+
+
+# # ==========================================
+# # STAGE 2: Lightweight Production Runtime
+# # ==========================================
+# FROM node:22-alpine AS runner
+
+# WORKDIR /app
+
+# ENV NODE_ENV=production
+
+# # Copy package files for reference
+# COPY package*.json ./
+
+# # Copy complete node_modules from builder (includes Prisma generated client)
+# COPY --from=builder /app/node_modules ./node_modules
+
+# # Copy source code and Prisma schema
+# COPY --from=builder /app/src ./src
+# COPY --from=builder /app/prisma ./prisma
+
+# EXPOSE 4000
+
+# CMD ["node", "src/server.js"]3
+
+

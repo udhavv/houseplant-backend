@@ -44,12 +44,19 @@
 
 
 
+
+# networks:
+#   my-net:
+#     driver: bridge
+
+
+
 # for production 
 services:
 
   backend:
     build: .
-    image: multistage-backend:latest
+    image: optiimize-backend2:latest
     container_name: houseplant-backend-multistage
     ports:
       - "4000:4000"
