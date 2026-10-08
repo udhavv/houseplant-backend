@@ -55,12 +55,12 @@ app.use(cookieParser());
 // -------------------------
 // CORS
 // -------------------------
+const url= process.env.NODE_ENV === "production" ? process.env.PRODUCTION_FRONTEND_URL : process.env.FRONTEND_URL_DEVELOPMENT;
 
 app.use(
   cors({
     origin: [
-      'http://localhost:3000',
-      'https://houseplant-frontend-itx2.vercel.app'
+      url
     ],
     credentials: true,
   })

@@ -101,9 +101,11 @@
 # ==========================================
 # STAGE 1: Install dependencies + generate Prisma
 # ==========================================
-FROM node:22-alpine AS deps
+FROM node:26-alpine AS deps
 
 WORKDIR /app
+
+RUN apk update && apk upgrade
 
 # Prisma requires OpenSSL
 RUN apk add --no-cache openssl
@@ -121,9 +123,11 @@ RUN npx prisma generate
 # ==========================================
 # STAGE 2: Production dependencies
 # ==========================================
-FROM node:22-alpine AS prod-deps
+FROM node:26-alpine AS prod-deps
 
 WORKDIR /app
+
+RUN apk update && apk upgrade
 
 COPY package*.json ./
 
@@ -134,16 +138,17 @@ RUN npm ci --omit=dev \
 # ==========================================
 # STAGE 3: Production runtime
 # ==========================================
-FROM node:22-alpine AS runner
+FROM node:26-alpine AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 
 # Prisma runtime dependency
-RUN apk add --no-cache openssl \
+RUN apk update && apk upgrade \ 
+    && apk add --no-cache openssl \
     && addgroup -S nodejs \
-    && adduser -S nodejs -G nodejs
+    && adduser -S nodejs -G nodejs 
 
 # Production node_modules
 COPY --from=prod-deps /app/node_modules ./node_modules
@@ -154,12 +159,16 @@ COPY --from=prod-deps /app/node_modules ./node_modules
 
 # Application source
 COPY --chown=nodejs:nodejs src ./src
+COPY --from=deps --chown=nodejs:nodejs /app/src/generated ./src/generated
 
 # Only copy Prisma migrations/schema if runtime needs them
 COPY --chown=nodejs:nodejs prisma ./prisma
+COPY --chown=nodejs:nodejs prisma.config.ts ./
 
 # Package metadata
 COPY --chown=nodejs:nodejs package*.json ./
+
+# HEALTHCHECK --interval= --timeout=5s --start-period= --retries=3 CMD wget --no-verbose --tries=1 --spider http://localhost:4000/health || exit 1
 
 USER nodejs
 
