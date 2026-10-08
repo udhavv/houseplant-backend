@@ -56,6 +56,8 @@ app.use(cookieParser());
 // CORS
 // -------------------------
 
+const url= process.env.NODE_ENV === "production" ? process.env.PRODUCTION_FRONTEND_URL : process.env.FRONTEND_URL_DEVELOPMENT;
+
 app.use(
   cors({
     // origin: process.env.FRONTEND_URL
@@ -64,6 +66,7 @@ app.use(
     //       "http://localhost:3000",
     //       "http://192.168.12.77:3000",
     //     ],
+    url,
     origin: "*",
     credentials: true,
   })
