@@ -30,7 +30,7 @@ router.post('/reset-password/:token', validateResetPassword, resetPassword)
 router.get('/verify-email/:token', verifyEmail)
 
 router.get('/me', authenticate, me)
-router.post('/resend-verfication', authenticate, resendVerification)
+router.post('/resend-verification', authenticate, resendVerification)
 
 // Private routes
 router.post('/logout', authenticate, logout)

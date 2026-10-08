@@ -55,19 +55,13 @@ app.use(cookieParser());
 // -------------------------
 // CORS
 // -------------------------
+const url= process.env.NODE_ENV === "production" ? process.env.PRODUCTION_FRONTEND_URL : process.env.FRONTEND_URL_DEVELOPMENT;
 
 const url= process.env.NODE_ENV === "production" ? process.env.PRODUCTION_FRONTEND_URL : process.env.FRONTEND_URL_DEVELOPMENT;
 
 app.use(
   cors({
-    // origin: process.env.FRONTEND_URL
-    //   ? [process.env.FRONTEND_URL]
-    //   : [
-    //       "http://localhost:3000",
-    //       "http://192.168.12.77:3000",
-    //     ],
-    url,
-    origin: "*",
+    origin; url,
     credentials: true,
   })
 );
@@ -87,11 +81,15 @@ app.use(`/api/${process.env.VERSION}/shop`, shopRoutes);
 // -------------------------
 
 app.get("/test", (req, res) => {
-  console.log("Test route hit");
+  console.log("Test route hit once again");
 
   res.send("Test route is working");
 });
 
+
+app.get('/', (req, res) => {
+  res.send("This is just the backend, I am working in Frontend to make it better. it is incontinent with backend for now.");
+});
 // -------------------------
 // 404 Handler
 // -------------------------

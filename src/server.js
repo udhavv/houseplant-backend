@@ -4,10 +4,11 @@ import { startPlantDegrader } from "./cron/plantDegrader.js";
 
 dotenv.config();
 
-const port = process.env.PORT || 4000;
+const port = Number(process.env.PORT) || 4000;
+const host= '0.0.0.0'
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+app.listen(port, host, () => {
+  console.log(`Server is running on port ${host}:${port}`);
 
   startPlantDegrader();
 });

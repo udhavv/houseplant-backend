@@ -113,6 +113,13 @@ export const authenticate = async (req, res, next) => {
   try {
     let token = null
 
+    console.log('===== AUTH DEBUG =====')
+    console.log('Origin:', req.headers.origin)
+    console.log('Cookie header:', req.headers.cookie)
+    console.log('Parsed cookies:', req.cookies)
+    console.log('Access token exists:', !!req.cookies?.accessToken)
+    console.log('======================')
+
     // 1. Try to get token from cookie first (web app)
     if (req.cookies?.accessToken) {
       token = req.cookies.accessToken

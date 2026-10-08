@@ -1,0 +1,28 @@
+FROM node:26-alpine
+
+WORKDIR /app
+
+# Prisma requires OpenSSL
+RUN apk add --no-cache openssl \
+    && addgroup -S nodejs \
+    && adduser -S nodejs -G nodejs
+
+# Copy package files first
+COPY package*.json ./
+
+# Copy Prisma schema
+COPY prisma ./prisma/
+
+# Install ALL dependencies, including devDependencies
+RUN npm ci
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Copy application source
+COPY . .
+
+USER nodejs
+
+EXPOSE 4000
+

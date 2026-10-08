@@ -1,4 +1,4 @@
-// utils/plantConstants.js
+// utils/constants.js
 
 // Plant stages with their requirements
 export const PLANT_STAGES = {
@@ -6,9 +6,10 @@ export const PLANT_STAGES = {
     id: 'seed',
     label: 'Seed',
     icon: '🌰',
-    healthRange: [0, 20],
+    // healthRange: [0, 20],
     minDays: 0,
-    experienceRequired: 0,
+    // experienceRequired: 0,
+    level: 0,
     color: 'from-amber-200 to-amber-400',
     description: 'A tiny seed waiting to sprout',
     growthRate: 0.5,
@@ -17,9 +18,11 @@ export const PLANT_STAGES = {
     id: 'sprout',
     label: 'Sprout',
     icon: '🌱',
-    healthRange: [21, 40],
+    // healthRange: [21, 40],
     minDays: 2,
-    experienceRequired: 50,
+    // experienceRequired: 50,
+        level: 1,
+
     color: 'from-green-200 to-green-400',
     description: 'First signs of life emerging',
     growthRate: 1.0,
@@ -28,9 +31,11 @@ export const PLANT_STAGES = {
     id: 'seedling',
     label: 'Seedling',
     icon: '🌿',
-    healthRange: [41, 60],
+    // healthRange: [41, 60],
     minDays: 5,
-    experienceRequired: 150,
+    // experienceRequired: 150,
+        level: 3,
+
     color: 'from-green-300 to-green-500',
     description: 'Developing true leaves',
     growthRate: 1.5,
@@ -39,9 +44,12 @@ export const PLANT_STAGES = {
     id: 'young',
     label: 'Young Plant',
     icon: '🌳',
-    healthRange: [61, 80],
+    // healthRange: [61, 80],
     minDays: 10,
-    experienceRequired: 350,
+    // experienceRequired: 350,
+
+        level: 5,
+
     color: 'from-green-400 to-emerald-500',
     description: 'Growing taller and stronger',
     growthRate: 2.0,
@@ -50,9 +58,11 @@ export const PLANT_STAGES = {
     id: 'mature',
     label: 'Mature Plant',
     icon: '🌲',
-    healthRange: [81, 95],
+    // healthRange: [81, 95],
     minDays: 20,
-    experienceRequired: 600,
+    // experienceRequired: 600,
+        level: 9,
+
     color: 'from-emerald-400 to-teal-500',
     description: 'Full growth achieved',
     growthRate: 2.5,
@@ -61,9 +71,11 @@ export const PLANT_STAGES = {
     id: 'flowering',
     label: 'Flowering',
     icon: '🌸',
-    healthRange: [81, 100],
+    // healthRange: [81, 100],
     minDays: 30,
-    experienceRequired: 900,
+    // experienceRequired: 900,
+        level: 13,
+
     color: 'from-pink-400 to-rose-500',
     description: 'Beautiful blooms appear',
     growthRate: 3.0,
@@ -72,9 +84,11 @@ export const PLANT_STAGES = {
     id: 'fruiting',
     label: 'Fruiting',
     icon: '🍎',
-    healthRange: [81, 100],
+    // healthRange: [81, 100],
     minDays: 40,
-    experienceRequired: 1200,
+    // experienceRequired: 1200,
+        level: 17,
+
     color: 'from-red-400 to-orange-500',
     description: 'Fruits of your labor',
     growthRate: 3.5,
@@ -111,12 +125,12 @@ export const COIN_REWARDS = {
   FERTILIZE: 10,
   DAILY_CHECKIN: 20,
   STAGE_ADVANCE: 25,
-  LEVEL_UP: 50,
+  LEVEL_UP: 30,
 }
 
 // Level requirements (XP needed for each level)
 export const LEVEL_REQUIREMENTS = {
-  1: 0,
+   1: 50,
   2: 100,
   3: 250,
   4: 500,
@@ -126,4 +140,11 @@ export const LEVEL_REQUIREMENTS = {
   8: 2300,
   9: 3000,
   10: 4000,
+  11: 5200,
+  12: 6600,
+  13: 8200,
+  14: 10000,
+  15: 12000,
+  16: 14300,
+  17: 17000,
 }

@@ -2,7 +2,6 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
 
-const version= process.env.VERSION;
 
 
 const generateTokens = (userId) => {
@@ -34,26 +33,29 @@ const generateRandomToken = () => {
 }
 
 
+const site= process.env.NODE_ENV === 'development' ? 'lax': 'none'
+
+
 const setTokenCookies = (res, accessToken, refreshToken) => {
   const isProduction = process.env.NODE_ENV === 'production'
   
   // Access Token Cookie (15 min)
   res.cookie('accessToken', accessToken, {
-    httpOnly: true,           // ✅ Cannot be accessed by JavaScript
-    secure: isProduction,      // ✅ HTTPS only in production
-    sameSite: 'lax',          // ✅ CSRF protection
+    httpOnly: true,           //  Cannot be accessed by JavaScript
+    secure: isProduction,      //  HTTPS only in production
+    sameSite: site,          //  CSRF protection
     maxAge: 15 * 60 * 1000,   // 15 minutes
-    path: '/',                // Available on all routes
+    path: '/',   
   })
 
   // Refresh Token Cookie (7 days)
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'lax',
+    sameSite: site,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     // path: `/api/${version}/auth/refresh`,       // Only sent to refresh endpoint
-    path: '/', // Available on all routes for simplicity; adjust as needed
+    path: '/', // Available on all routes for simplicity;
   })
 }
 
