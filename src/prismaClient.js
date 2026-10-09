@@ -31,8 +31,15 @@ const caCertPath =
   process.env.NODE_ENV === "production"
     ? "/etc/secrets/ca.pem"
     : path.join(process.cwd(), "certs", "ca.pem");
+    
 
-const caCert = fs.readFileSync(caCertPath, "utf8");
+let caCert = "";
+try {
+  caCert = fs.readFileSync(caCertPath, "utf8");
+} catch (error) {
+  console.warn("Warning: ca.pem not found. Proceeding without it.");
+}
+
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
