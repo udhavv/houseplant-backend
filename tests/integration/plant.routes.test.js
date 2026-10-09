@@ -1,15 +1,5 @@
 import { expect, jest } from "@jest/globals";
 
-// const fetchPlantState = jest.fn();
-const waterPlant = jest.fn();
-const fertilizePlant = jest.fn();
-const repotPlant = jest.fn();
-const resetPlant = jest.fn();
-const getPlantMilestones = jest.fn();
-const getPlantCareLogs = jest.fn();
-const updatePlantName = jest.fn();
-const checkPlantStatus = jest.fn();
-const prunePlant = jest.fn();
 
 // jest.unstable_mockModule(
 //     "../../src/controllers/plantController.js",
