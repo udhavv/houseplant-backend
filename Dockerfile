@@ -127,12 +127,18 @@ FROM node:26-alpine AS prod-deps
 
 WORKDIR /app
 
-RUN apk update && apk upgrade
+# Add openssl here too so Prisma can generate
+RUN apk update && apk upgrade && apk add --no-cache openssl
 
 COPY package*.json ./
+COPY prisma ./prisma/
 
+# 1. Install ONLY production dependencies
 RUN npm ci --omit=dev \
     && npm cache clean --force
+
+# 2. Generate the Prisma client right here!
+RUN npx prisma generate
 
 
 # ==========================================
@@ -151,16 +157,11 @@ RUN apk update && apk upgrade \
     && adduser -S nodejs -G nodejs \
     && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
     
-# Production node_modules
+# Copy the completely built node_modules (which now includes the generated Prisma client!)
 COPY --from=prod-deps /app/node_modules ./node_modules
-
-# Prisma generated client
-# COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
-# COPY --from=deps /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
 # Application source
 COPY --chown=nodejs:nodejs src ./src
-# COPY --from=deps --chown=nodejs:nodejs /app/src/generated ./src/generated
 
 # Only copy Prisma migrations/schema if runtime needs them
 COPY --chown=nodejs:nodejs prisma ./prisma
@@ -169,13 +170,75 @@ COPY --chown=nodejs:nodejs prisma.config.ts ./
 # Package metadata
 COPY --chown=nodejs:nodejs package*.json ./
 
-# HEALTHCHECK --interval= --timeout=5s --start-period= --retries=3 CMD wget --no-verbose --tries=1 --spider http://localhost:4000/health || exit 1
-
 USER nodejs
 
 EXPOSE 4000
 
 CMD ["node", "src/server.js"]
+
+
+
+
+
+
+
+
+# # ==========================================
+# # STAGE 2: Production dependencies
+# # ==========================================
+# FROM node:26-alpine AS prod-deps
+
+# WORKDIR /app
+
+# RUN apk update && apk upgrade
+
+# COPY package*.json ./
+
+# RUN npm ci --omit=dev \
+#     && npm cache clean --force
+
+
+# # ==========================================
+# # STAGE 3: Production runtime
+# # ==========================================
+# FROM node:26-alpine AS runner
+
+# WORKDIR /app
+
+# ENV NODE_ENV=production
+
+# # Prisma runtime dependency
+# RUN apk update && apk upgrade \ 
+#     && apk add --no-cache openssl \
+#     && addgroup -S nodejs \
+#     && adduser -S nodejs -G nodejs \
+#     && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+    
+# # Production node_modules
+# COPY --from=prod-deps /app/node_modules ./node_modules
+
+# # Prisma generated client
+# # COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
+# # COPY --from=deps /app/node_modules/@prisma/client ./node_modules/@prisma/client
+
+# # Application source
+# COPY --chown=nodejs:nodejs src ./src
+# # COPY --from=deps --chown=nodejs:nodejs /app/src/generated ./src/generated
+
+# # Only copy Prisma migrations/schema if runtime needs them
+# COPY --chown=nodejs:nodejs prisma ./prisma
+# COPY --chown=nodejs:nodejs prisma.config.ts ./
+
+# # Package metadata
+# COPY --chown=nodejs:nodejs package*.json ./
+
+# # HEALTHCHECK --interval= --timeout=5s --start-period= --retries=3 CMD wget --no-verbose --tries=1 --spider http://localhost:4000/health || exit 1
+
+# USER nodejs
+
+# EXPOSE 4000
+
+# CMD ["node", "src/server.js"]
 
 
 
