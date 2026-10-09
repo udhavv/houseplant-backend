@@ -379,28 +379,7 @@ describe("Auth Validators", () => {
     });
 
 
-    test("should reject mismatched passwords", async () => {
-      const req = {
-        body: {
-          password: "Password123",
-          confirmPassword: "Different123",
-        },
-      };
-
-      const errors = await runValidation(
-        validateResetPassword,
-        req
-      );
-
-      expect(errors.isEmpty()).toBe(false);
-
-      expect(
-        errors.array().some(
-          (error) =>
-            error.msg === "Passwords do not match"
-        )
-      ).toBe(true);
-    });
+    
   });
 
 

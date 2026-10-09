@@ -81,7 +81,6 @@
 //         layer.route?.methods.post
         
 //     );
-//     // console.log('this is route1:- ', route)
 //     expect(route).toBeDefined();
 //   });
 
@@ -92,7 +91,6 @@
 //         layer.route?.path === "/register" &&
 //         layer.route?.methods.post
 //     );
-//     // console.log('this is the route2:- ', route.route.stack)
 
 //     expect(route.route.stack).toHaveLength(2);
 

@@ -951,7 +951,7 @@ export const login = async (req, res) => {
     // Set HTTP-only cookies
     setTokenCookies(res, accessToken, refreshToken)
 
-    res.json({
+    res.status(200).json({
       success: true,
       message: 'Welcome back! Login successful.',
       user: {

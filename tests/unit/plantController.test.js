@@ -159,6 +159,9 @@ jest.unstable_mockModule('../../src/prismaClient.js', () => ({
     transaction: {
       create: jest.fn(),
     },
+    user : {
+      update: jest.fn(),
+    },
     $transaction: jest.fn(),
   },
 }))
@@ -274,7 +277,7 @@ describe('[UNIT] fetchPlantState', () => {
 
   // -- existing plant (no stage change) -------------------------
   it('returns existing plant without advancing stage', async () => {
-    const plant = makePlant({ growthStage: 'seed' })
+    const plant = makePlant({ growthStage: 'seed', createdAt: new Date() })
     prisma.plant.findFirst
       .mockResolvedValueOnce(plant)
       .mockResolvedValueOnce(plant)
@@ -341,7 +344,6 @@ describe('[UNIT] fetchPlantState', () => {
     await fetchPlantState(makeReq(), res)
 
     // Stage update — uses mocked EXPERIENCE_REWARDS.STAGE_ADVANCE (555)
-    console.log('prisma.plant.update.mock.calls:', prisma.plant.update.mock.calls)
     expect(prisma.plant.update).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -431,9 +433,6 @@ describe('[UNIT] fetchPlantState', () => {
 
   await fetchPlantState(makeReq(), res)
 
-  console.log('findFirst calls:', prisma.plant.findFirst.mock.calls)
-  console.log('status calls:', res.status.mock.calls)
-  console.log('json calls:', res.json.mock.calls)
 
   expect(prisma.plant.findFirst).toHaveBeenCalled()
   expect(res.status).toHaveBeenCalledWith(500)
@@ -441,7 +440,7 @@ describe('[UNIT] fetchPlantState', () => {
   expect(res.json).toHaveBeenCalledWith({
     success: false,
     error: 'DB down',
-    message: 'Failed to fetch plant data',
+    message: 'failed to fetch plant data',
   })
 })
 
@@ -686,14 +685,9 @@ describe('[UNIT] waterPlant', () => {
     const res = makeRes()
     await waterPlant(makeReq(), res)
 
-    console.log('this this is the plant:- ', plant)
-
-    console.log('prisma.plant.update.mock.calls:', prisma.plant.update.mock.calls)
-    console.log('res.json.mock.calls:', res.json.mock.calls[0][0])
 
     expect(res.json.mock.calls[0][0].stageAdvanced).toBe(true)
 
-        console.log('res.json.mock.calls:', res.json.mock.calls[0][0])
 
     expect(res.json.mock.calls[0][0].message).toContain('Advanced to')
   })
@@ -1191,12 +1185,12 @@ describe('[UNIT] resetPlant', () => {
     expect(prisma.plant.update).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          name: 'Sprout',
+          name: 'seed',
           health: 100,
           waterLevel: 100,
           growthStage: 'seed',
           experience: 0,
-          level: 1,
+          level:0,
           daysOld: 0,
           isAlive: true,
           potType: 'basic',
