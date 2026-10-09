@@ -57,11 +57,10 @@ app.use(cookieParser());
 // -------------------------
 const url= process.env.NODE_ENV === "production" ? process.env.PRODUCTION_FRONTEND_URL : process.env.FRONTEND_URL_DEVELOPMENT;
 
-const url= process.env.NODE_ENV === "production" ? process.env.PRODUCTION_FRONTEND_URL : process.env.FRONTEND_URL_DEVELOPMENT;
 
 app.use(
   cors({
-    origin; url,
+    origin: url,
     credentials: true,
   })
 );
