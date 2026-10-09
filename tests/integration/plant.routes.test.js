@@ -11,21 +11,34 @@ const updatePlantName = jest.fn();
 const checkPlantStatus = jest.fn();
 const prunePlant = jest.fn();
 
-jest.unstable_mockModule(
-    "../../src/controllers/plantController.js",
-     () => ({
-  fetchPlantState,
-  waterPlant,
-  fertilizePlant,
-  repotPlant,
-  resetPlant,
-  getPlantMilestones,
-  getPlantCareLogs,
-  updatePlantName,
-  checkPlantStatus,
-  prunePlant,
-}));
+// jest.unstable_mockModule(
+//     "../../src/controllers/plantController.js",
+//      () => ({
+//   fetchPlantState,
+//   waterPlant,
+//   fertilizePlant,
+//   repotPlant,
+//   resetPlant,
+//   getPlantMilestones,
+//   getPlantCareLogs,
+//   updatePlantName,
+//   checkPlantStatus,
+//   prunePlant,
+// }));
 
+
+import { 
+  fetchPlantState, 
+  checkPlantStatus, 
+  waterPlant, 
+  fertilizePlant, 
+  prunePlant, 
+  repotPlant, 
+  resetPlant, 
+  updatePlantName, 
+  getPlantMilestones, 
+  getPlantCareLogs 
+} from "../../src/controllers/plantController.js";
 
 const validatePlantName= jest.fn();
 const validateResetPlant= jest.fn();
