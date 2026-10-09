@@ -1,22 +1,5 @@
 import { expect, jest } from "@jest/globals";
 
-
-// jest.unstable_mockModule(
-//     "../../src/controllers/plantController.js",
-//      () => ({
-//   fetchPlantState,
-//   waterPlant,
-//   fertilizePlant,
-//   repotPlant,
-//   resetPlant,
-//   getPlantMilestones,
-//   getPlantCareLogs,
-//   updatePlantName,
-//   checkPlantStatus,
-//   prunePlant,
-// }));
-
-
 import { 
   fetchPlantState, 
   checkPlantStatus, 
@@ -30,36 +13,28 @@ import {
   getPlantCareLogs 
 } from "../../src/controllers/plantController.js";
 
-const validatePlantName= jest.fn();
-const validateResetPlant= jest.fn();
-const validateGetMilestones= jest.fn();
-const validateGetCareLogs= jest.fn();
-const validateCheckPlantStatus= jest.fn();
+const validatePlantName = jest.fn();
+const validateResetPlant = jest.fn();
+const validateGetMilestones = jest.fn();
+const validateGetCareLogs = jest.fn();
+const validateCheckPlantStatus = jest.fn();
 
 jest.unstable_mockModule(
     "../../src/middleware/plantValidator.js",
     () => (({
         validatePlantName,
-  validateResetPlant,
-  validateGetMilestones,
-  validateGetCareLogs,
-  validateCheckPlantStatus
+        validateResetPlant,
+        validateGetMilestones,
+        validateGetCareLogs,
+        validateCheckPlantStatus
     }))
 )
 
-
-
-
-
-
 const authenticate = jest.fn();
-
 
 jest.unstable_mockModule("../../src/middleware/auth.js", () => ({
   authenticate,
 }));
-
-
 
 const { default: router } = await import(
     "../../src/routes/plantRoutes.js"
@@ -86,8 +61,8 @@ describe("Plant Routes", () => {
 
     expect(route).toBeDefined();
 
-    expect(route.route.stack[0].handle).toBe(
-        fetchPlantState
+    expect(route.route.stack[0].handle.name).toBe(
+        "fetchPlantState"
     );
   })
 
@@ -115,8 +90,8 @@ describe("Plant Routes", () => {
         validateCheckPlantStatus
     )
 
-    expect(route.route.stack[1].handle).toBe(
-        checkPlantStatus
+    expect(route.route.stack[1].handle.name).toBe(
+        "checkPlantStatus"
     )
   }) 
 
@@ -130,14 +105,10 @@ describe("Plant Routes", () => {
 
     expect(route).toBeDefined();
 
-    expect(route.route.stack[0].handle).toBe(
-        waterPlant
+    expect(route.route.stack[0].handle.name).toBe(
+        "waterPlant"
     )
   })
-
-
-
-
 
 
    test("should fertilize POST /fertilize route", () => {
@@ -149,8 +120,8 @@ describe("Plant Routes", () => {
 
     expect(route).toBeDefined();
 
-    expect(route.route.stack[0].handle).toBe(
-        fertilizePlant
+    expect(route.route.stack[0].handle.name).toBe(
+        "fertilizePlant"
     )
   })
 
@@ -164,8 +135,8 @@ describe("Plant Routes", () => {
 
     expect(route).toBeDefined();
 
-    expect(route.route.stack[0].handle).toBe(
-        prunePlant
+    expect(route.route.stack[0].handle.name).toBe(
+        "prunePlant"
     )
   })
 
@@ -180,8 +151,8 @@ describe("Plant Routes", () => {
 
     expect(route).toBeDefined();
 
-    expect(route.route.stack[0].handle).toBe(
-        repotPlant
+    expect(route.route.stack[0].handle.name).toBe(
+        "repotPlant"
     )
   })
 
@@ -198,8 +169,8 @@ describe("Plant Routes", () => {
     expect(route.route.stack[0].handle).toBe(
         validateResetPlant
     )
-     expect(route.route.stack[1].handle).toBe(
-        resetPlant
+    expect(route.route.stack[1].handle.name).toBe(
+        "resetPlant"
     )
   })
 
@@ -215,12 +186,10 @@ describe("Plant Routes", () => {
     expect(route.route.stack[0].handle).toBe(
         validatePlantName
     )
-     expect(route.route.stack[1].handle).toBe(
-        updatePlantName
+    expect(route.route.stack[1].handle.name).toBe(
+        "updatePlantName"
     )
   })
-
-
 
   
    test("should milestones GET /milestones route", () => {
@@ -235,14 +204,14 @@ describe("Plant Routes", () => {
     expect(route.route.stack[0].handle).toBe(
         validateGetMilestones
     )
-     expect(route.route.stack[1].handle).toBe(
-        getPlantMilestones
+    expect(route.route.stack[1].handle.name).toBe(
+        "getPlantMilestones"
     )
   })
 
 
 
-     test("should care logs GET /care-logs route", () => {
+  test("should care logs GET /care-logs route", () => {
     const route= router.stack.find(
         (layer) => 
             layer.route?.path=== '/care-logs' &&
@@ -254,11 +223,9 @@ describe("Plant Routes", () => {
     expect(route.route.stack[0].handle).toBe(
         validateGetCareLogs
     )
-     expect(route.route.stack[1].handle).toBe(
-        getPlantCareLogs
+    expect(route.route.stack[1].handle.name).toBe(
+        "getPlantCareLogs"
     )
   })
-
-
 
 });
