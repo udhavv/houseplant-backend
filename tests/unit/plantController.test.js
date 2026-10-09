@@ -1185,7 +1185,7 @@ describe('[UNIT] resetPlant', () => {
     expect(prisma.plant.update).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          name: 'seed',
+          name: 'Seed',
           health: 100,
           waterLevel: 100,
           growthStage: 'seed',
