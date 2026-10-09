@@ -1,6 +1,6 @@
 import { expect, jest } from "@jest/globals";
 
-const fetchPlantState = jest.fn();
+// const fetchPlantState = jest.fn();
 const waterPlant = jest.fn();
 const fertilizePlant = jest.fn();
 const repotPlant = jest.fn();
