@@ -160,7 +160,7 @@ COPY --from=prod-deps /app/node_modules ./node_modules
 
 # Application source
 COPY --chown=nodejs:nodejs src ./src
-COPY --from=deps --chown=nodejs:nodejs /app/src/generated ./src/generated
+# COPY --from=deps --chown=nodejs:nodejs /app/src/generated ./src/generated
 
 # Only copy Prisma migrations/schema if runtime needs them
 COPY --chown=nodejs:nodejs prisma ./prisma
