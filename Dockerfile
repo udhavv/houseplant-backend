@@ -148,8 +148,9 @@ ENV NODE_ENV=production
 RUN apk update && apk upgrade \ 
     && apk add --no-cache openssl \
     && addgroup -S nodejs \
-    && adduser -S nodejs -G nodejs 
-
+    && adduser -S nodejs -G nodejs \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+    
 # Production node_modules
 COPY --from=prod-deps /app/node_modules ./node_modules
 
