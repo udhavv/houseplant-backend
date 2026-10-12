@@ -87,7 +87,7 @@ app.get("/test", (req, res) => {
 
 
 app.get('/', (req, res) => {
-  res.send("This is just the backend smily face........................................., I am working in Frontend to make it better. it is incontinent with backend for now.");
+  res.send("This is just the backend smily face.........................................., I am working in Frontend to make it better. it is incontinent with backend for now.");
 });
 // -------------------------
 // 404 Handler
