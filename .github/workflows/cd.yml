@@ -252,4 +252,4 @@ jobs:
       - name: Verify Live Health Check
         run: |
           echo "Pinging /test endpoint..."
-          curl --fail --retry 10 --retry-delay 5 https://your-service-name.onrender.com/test || exit 1
+          curl --fail --retry 10 --retry-delay 5 ${{secrets.BACKEND_URL}} || exit 1
