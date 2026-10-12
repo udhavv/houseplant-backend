@@ -1,0 +1,255 @@
+# name : cd
+
+# on:
+#     push:
+#         branches:
+#             - main
+#     workflow_dispatch: 
+
+
+# concurrency:
+#     group: production-deploy
+#     cancel-in-progress: false
+
+
+
+# permissions:
+#     contents: read
+#     packages: write
+
+
+# env:
+#     REGISTRY: ghcr.io
+#     IMAGE_NAME: ${{ github.repository}}
+
+# jobs:
+#     migrate-database:
+#         name: datebase migration
+#         runs-on: ubuntu-latest
+#         timeout-minutes: 10
+#         steps:
+#             - name: checkout code
+#               uses: actions/checkout@v4
+
+#             - name: Setup Node.js
+#               uses: actions/setup-node@v4
+#               with:
+#                   node-version: 22
+#                   cache: npm
+
+#             - name: Install dependencies
+#               run: npm ci --prefer-offline
+
+            
+#             - name: Run database migration
+#               env:
+#                   DATABASE_URL: ${{ secrets.DATABASE_URL }}
+#               run: npx prisma migrate deploy
+
+
+
+#     build-and-push:
+#         name: Build and push the docker Images in docker content registery
+#         runs-on: ubuntu-latest
+#         timeout-minutes: 15
+#         needs: migrate-database
+#         steps:
+#             - name: checkout code
+#               uses: actions/checkout@v4
+
+#             - name: set up docker buildx
+#               uses: docker/setup-buildx-action@v3
+
+#             - name: Log in to GitHub Container Registry
+#               uses: docker/login-action@v3
+#               with:
+#                   registry: ${{ env.REGISTRY}}
+#                   username: ${{ github.actor}}
+#                   password: ${{ secrets.TOKEN_GITHUB}}
+
+#             - name: Extract Docker metadata (Tags & Labels)
+#               id: meta
+#               uses: docker/metadata-action@v5
+#               with:
+#                 images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+#                 tags: |
+#                     type=raw,value=latest
+#                     type=sha,format=short,prefix=sha-
+
+#             - name: Build and push docker image
+#               uses: docker/build-push-action@v6
+#               with:
+#                   context: .
+#                   push: true
+#                   tags: ${{ steps.meta.outputs.tags }}
+#                   labels: ${{ steps.meta.outputs.labels }}
+#                   cache-from: type=gha
+#                   cache-to: type=gha,mode=max
+
+
+#     deploy:
+#         name: deploy to production
+#         runs-on: ubuntu-latest
+#         timeout-minutes: 10
+#         needs: build-and-push
+
+#         environment:
+#             name: production
+
+#         steps:
+#             - name: Trigger Render deployment
+#               env:
+#                   RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+#                   IMAGE_URL: ghcr.io/${{ github.repository }}:sha-${{ github.sha }}
+#               run: |
+#                   set -euo pipefail
+
+#                   echo "Deploying image: ${IMAGE_URL}"
+
+#                   curl --fail-with-body --silent --show-error \
+#                     --get \
+#                     --data-urlencode "imgURL=${IMAGE_URL}" \
+#                     "$RENDER_DEPLOY_HOOK_URL"
+
+#                   echo "Render deployment request submitted"
+
+
+
+
+
+
+
+name: CD
+
+on:
+  # Triggers CD only after the "CI" workflow completes successfully on main
+  workflow_run:
+    workflows: ["CI"] # Must match the "name:" in your ci.yml exactly
+    branches: [main]
+    types:
+      - completed
+  workflow_dispatch: # Keeps manual trigger available
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false # Do not cancel in-progress deploys mid-migration!
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  # -------------------------------------------------------------
+  # Step 1: Run Database Migrations on Aiven
+  # -------------------------------------------------------------
+  migrate-database:
+    name: Database Migration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline
+
+      - name: Run database migration
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx prisma migrate deploy
+
+  # -------------------------------------------------------------
+  # Step 2: Build & Push Docker Image to GHCR
+  # -------------------------------------------------------------
+  build-and-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: migrate-database
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }} # Passes the exact short SHA tag to the deploy job
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }} # Built-in GitHub token with packages: write
+
+      - name: Extract Docker metadata (Tags & Labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # Automatically handles lowercase image naming
+          images: ${{ env.REGISTRY }}/${{ github.repository }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short,prefix=sha-
+
+      - name: Build and push docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # -------------------------------------------------------------
+  # Step 3: Trigger Render Rollout with the New Image Tag
+  # -------------------------------------------------------------
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build-and-push
+    environment:
+      name: production
+
+    steps:
+      - name: Trigger Render deployment
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          # Lowercases repository name and matches the exact short SHA pushed above
+          REPO: ${{ github.repository }}
+          IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+        run: |
+          set -euo pipefail
+
+          # Convert repository name to lowercase for Docker compliance
+          LOWER_REPO=$(echo "${REPO}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_URL="ghcr.io/${LOWER_REPO}:${IMAGE_TAG}"
+
+          echo "Triggering Render deployment for: ${IMAGE_URL}"
+
+          # Render deploy hooks require POST with the imgURL parameter
+          curl --fail-with-body --silent --show-error -X POST \
+            "${RENDER_DEPLOY_HOOK_URL}&imgURL=${IMAGE_URL}"
+
+          echo "Render deployment request successfully submitted!"
+
+      - name: Wait for Render rollout
+        run: sleep 25
+
+      - name: Verify Live Health Check
+        run: |
+          echo "Pinging /test endpoint..."
+          curl --fail --retry 10 --retry-delay 5 https://your-service-name.onrender.com/test || exit 1

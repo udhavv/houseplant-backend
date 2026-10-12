@@ -9,9 +9,39 @@ on:
         branches:
             - main
 
+concurrency:
+    group: ${{ github.workflow}}-${{ github.ref}}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
 jobs:
-    test:
+    lint:
+        name: code quality check
         runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
+            - name: checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: npm
+
+            - name: Install dependencies
+              run: npm ci --prefer-offline
+
+            - name: Run linter
+              run: npm run lint
+
+    test-and-build:
+        name: test and build stage
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        needs: lint
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
@@ -20,7 +50,7 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: 22
-
+                  cache: npm
 
             - name: Install dependencies
               run: npm ci
@@ -31,12 +61,12 @@ jobs:
                   DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
             - name: Run tests
-              run: npm test
               env:
                   DATABASE_URL: ${{ secrets.DATABASE_URL }}
+              run: npm test
 
-    # build:
-    #     runs-on: ubuntu-latest
-    #     steps:
-    #         - name: build project
-    #           run: npm run build
+
+            - name: build application
+              run: npm run build
+
+  
